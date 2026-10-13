@@ -45,7 +45,7 @@ export default function Hero() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blush-200/40 to-mint-200/40 rounded-full blur-3xl scale-110" />
             <img
-              src="/logo.png"
+              src={`${import.meta.env.BASE_URL}logo.png`}
               alt="Little Luxuries Cleaning Co. Logo"
               className="relative w-64 md:w-80 h-auto drop-shadow-xl animate-float"
             />
