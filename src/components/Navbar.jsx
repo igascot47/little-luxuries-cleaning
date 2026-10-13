@@ -25,7 +25,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center gap-2 group">
             <img
-             src={${import.meta.env.BASE_URL}logo.png}
+             src={`${import.meta.env.BASE_URL}logo.png`}
 alt="Little Luxuries Cleaning Co."
 className="h-12 w-auto object-contain group-hover transition-transform duration-300"
             />
