@@ -52,19 +52,19 @@ export default function BookingCalendar() {
     setBookedIsos(getBookedIsos())
   }, [])
 
-  useEffect(() => {
-    if (selectedDate) {
-      setSlots(getAvailableSlots(selectedDate, bookedIsos))
-      setSelectedSlot(null)
-    }
-  }, [selectedDate, bookedIsos])
+useEffect(() => {
+  if (selectedDate) {
+    setSlots(getAvailableSlots(selectedDate, bookedIsos))
+  }
+}, [selectedDate, bookedIsos])
 
   const visibleDays = workingDays.slice(weekOffset * 7, weekOffset * 7 + 14)
 
   const handleSelectDate = (day) => {
-    setSelectedDate(day)
-    setStep(2)
-  }
+  setSelectedDate(day)
+  setSelectedSlot(null)
+  setStep(2)
+}
 
   const handleSelectSlot = (slot) => {
     setSelectedSlot(slot)
