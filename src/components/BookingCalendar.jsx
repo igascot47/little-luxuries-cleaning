@@ -339,10 +339,7 @@ useEffect(() => {
               <span className="text-gray-500">Address</span>
               <span className="font-medium text-right max-w-[60%]">{form.address}</span>
             </div>
-            <div className="border-t border-blush-200 pt-2 flex justify-between text-base">
-              <span className="font-medium">Total (demo)</span>
-              <span className="font-semibold text-blush-500">$0.00</span>
-            </div>
+            
           </div>
 
           <p className="text-xs text-gray-400 mb-4 text-center">
@@ -350,7 +347,7 @@ useEffect(() => {
           </p>
           <button onClick={handlePayment} className="btn-primary w-full">
             <Sparkles size={18} />
-            Confirm Booking (Demo)
+            Confirm Booking 
           </button>
         </div>
       )}
