@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans text-gray-800 bg-blush-50 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full
+           bg-gradient-to-r from-blush-400 to-blush-500 text-white font-medium
+           shadow-lg shadow-blush-200/50 hover:shadow-xl hover:shadow-blush-300/50
+           hover:from-blush-500 hover:to-blush-600 transition-all duration-300
+           active:scale-95;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full
+           bg-white text-blush-600 font-medium border-2 border-blush-200
+           hover:bg-blush-50 hover:border-blush-300 transition-all duration-300
+           active:scale-95;
+  }
+  .card {
+    @apply bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg shadow-blush-100/50
+           border border-blush-100 overflow-hidden transition-all duration-300
+           hover:shadow-xl hover:shadow-blush-200/40 hover:-translate-y-1;
+  }
+  .section-title {
+    @apply text-3xl md:text-4xl font-semibold text-gray-800 text-center mb-3;
+  }
+  .section-subtitle {
+    @apply text-blush-500 text-center mb-10 max-w-2xl mx-auto;
+  }
+}
+
+.sparkle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 2px rgba(251, 113, 144, 0.6);
+  animation: sparkle 1.8s ease-in-out infinite;
+}
