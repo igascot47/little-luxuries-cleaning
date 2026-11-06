@@ -23,13 +23,10 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-blush-100 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16 md:h-20">
+          
+          {/* Text only - logo removed */}
           <Link to="/" className="flex items-center gap-2 group">
-            <img
-             src={`${import.meta.env.BASE_URL}logo.png`}
-alt="Little Luxuries Cleaning Co."
-className="h-12 w-auto object-contain group-hover transition-transform duration-300"
-            />
-            <div className="hidden sm:block">
+            <div>
               <span className="font-script text-2xl text-blush-500 leading-none">Little Luxuries</span>
               <p className="text-[10px] tracking-widest text-gray-500 uppercase -mt-1">Cleaning Co.</p>
             </div>
