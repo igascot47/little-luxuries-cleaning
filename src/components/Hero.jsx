@@ -9,7 +9,7 @@ export default function Hero() {
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: `url(${import.meta.env.BASE_URL}logo.png)`,
+          backgroundImage: `url(${import.meta.env.BASE_URL}background-bg.png)`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center center', // Centers the logo
           backgroundSize: '500px', // Adjust this size if you want it larger or smaller
