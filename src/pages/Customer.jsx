@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History, Sparkles } from 'lucide-react'
+import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History } from 'lucide-react'
 
 export default function Customer() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -21,7 +21,6 @@ export default function Customer() {
   const [cleaningsHistory, setCleaningsHistory] = useState([
     { id: 'CLN-003', date: 'October 18, 2026', service: 'Deep Home Clean', status: 'Completed', amount: '$200.00' },
     { id: 'CLN-002', date: 'September 14, 2026', service: 'Standard Tidy-Up', status: 'Completed', amount: '$150.00' },
-    { id: 'CLN-001', date: 'August 10, 2026', service: 'Initial Move-in Clean', status: 'Completed', amount: '$250.00' },
   ])
 
   // Quick Booking State (Sunday - Thursday, 9 AM - 3 PM)
@@ -58,12 +57,12 @@ export default function Customer() {
       alert('Please select a day between Sunday and Thursday.')
       return
     }
-    
-    // Add new request to history view
+
+    // Add new booking request to history logs automatically
     const newRecord = {
       id: `CLN-00${cleaningsHistory.length + 1}`,
       date: bookingData.date,
-      service: `Scheduled Clean (${bookingData.time})`,
+      service: `Requested Clean (${bookingData.time})`,
       status: 'Upcoming / 50% Hold Authorized',
       amount: '$175.00'
     }
@@ -84,8 +83,8 @@ export default function Customer() {
               </h1>
               <p className="text-sm text-gray-500 mt-1">
                 {authMode === 'login' 
-                  ? 'Sign in with your email to view your service history & quick book' 
-                  : 'Register using your email to save your home info and manage cleans'}
+                  ? 'Sign in with your email to view your saved home details & quick book' 
+                  : 'Register using your email to save your home info and manage future cleans'}
               </p>
             </div>
 
@@ -145,7 +144,7 @@ export default function Customer() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-3xl border border-blush-100 shadow-sm gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Hello, {profile.fullName}!</h1>
-                <p className="text-sm text-gray-500">View past cleanings, request new cleans, and track live service status.</p>
+                <p className="text-sm text-gray-500">Manage your profile, payment card, live service status, and quick bookings.</p>
               </div>
               <button 
                 onClick={() => setIsLoggedIn(false)}
@@ -218,20 +217,20 @@ export default function Customer() {
               </div>
             </div>
 
-            {/* QUICK BOOKING / REQUEST NEW CLEANING */}
+            {/* QUICK BOOKING SECTION FOR RETURNING CUSTOMERS */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-blush-500" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Request a New Cleaning</h2>
+                <h2 className="text-lg font-semibold text-gray-800">Quick Book Next Cleaning</h2>
               </div>
 
               {bookedSubmitted ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Successfully Submitted!</h3>
-                  <p className="text-sm text-gray-600 mb-4">Your next clean is scheduled for {bookingData.date} at {bookingData.time}. (50% hold authorized)</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">Booking Confirmed!</h3>
+                  <p className="text-sm text-gray-600 mb-4">Scheduled for {bookingData.date} at {bookingData.time}.</p>
                   <button onClick={() => setBookedSubmitted(false)} className="btn-primary text-sm py-2 px-4">
-                    Book Another Clean
+                    Book Another
                   </button>
                 </div>
               ) : (
@@ -272,19 +271,8 @@ export default function Customer() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Special Notes / Access Info</label>
-                    <textarea 
-                      rows={2}
-                      value={bookingData.notes}
-                      onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
-                      placeholder="Any specific requests for this visit?"
-                      className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blush-400"
-                    />
-                  </div>
-
                   <button type="submit" className="w-full btn-primary py-3 text-sm font-medium">
-                    Submit Request & Authorize 50% Hold
+                    Confirm Quick Booking (50% Deposit Hold)
                   </button>
                 </form>
               )}
