@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History } from 'lucide-react'
+import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History, Truck, Sparkles } from 'lucide-react'
 import { saveBooking, loadBookings } from '../utils/schedule'
 
 export default function Customer() {
@@ -10,7 +10,7 @@ export default function Customer() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  // Test Profile State
+  // Profile State
   const [profile, setProfile] = useState({
     fullName: 'Jane Doe',
     phone: '(555) 019-2834',
@@ -21,12 +21,22 @@ export default function Customer() {
   // Past Cleanings & Schedule History
   const [cleaningsHistory, setCleaningsHistory] = useState([])
   const [bookedSubmitted, setBookedSubmitted] = useState(false)
-  const [cleaningStatus, setCleaningStatus] = useState('cleaning')
 
+  const [bookingData, setBookingData] = useState({
+    date: '',
+    time: '9:00 AM',
+    notes: ''
+  })
+
+  // Periodically read status from storage
   useEffect(() => {
     const currentBookings = loadBookings()
     setCleaningsHistory(currentBookings)
   }, [bookedSubmitted])
+
+  // Get current active cleaning's live status stage
+  const latestBooking = cleaningsHistory[0]
+  const currentStage = latestBooking?.serviceStage || 'En Route'
 
   // Only allow Sunday (0) to Thursday (4)
   const isAllowedDay = (dateString) => {
@@ -35,11 +45,9 @@ export default function Customer() {
     return day >= 0 && day <= 4
   }
 
-  // Save account info to shared storage when signing in/registering
   const handleAuthSubmit = (e) => {
     e.preventDefault()
     
-    // Save account to shared list for Admin portal
     const existingAccounts = JSON.parse(localStorage.getItem('luxury_cleaning_accounts') || '[]')
     const accountExists = existingAccounts.some(acc => acc.email === email)
     
@@ -60,7 +68,6 @@ export default function Customer() {
 
   const handleProfileSave = (e) => {
     e.preventDefault()
-    // Update account profile in storage
     const existingAccounts = JSON.parse(localStorage.getItem('luxury_cleaning_accounts') || '[]')
     const updatedAccounts = existingAccounts.map(acc => 
       acc.email === email ? { ...acc, fullName: profile.fullName, phone: profile.phone, address: profile.address, homeDetails: profile.homeDetails } : acc
@@ -71,7 +78,7 @@ export default function Customer() {
 
   const handleBookingSubmit = (e) => {
     e.preventDefault()
-    if (!isAllowedDay(bookingData?.date || '')) {
+    if (!isAllowedDay(bookingData.date)) {
       alert('Please select a day between Sunday and Thursday.')
       return
     }
@@ -85,17 +92,12 @@ export default function Customer() {
       time: bookingData.time,
       notes: bookingData.notes,
       service: 'Returning Customer Clean',
-      status: 'confirmed'
+      status: 'confirmed',
+      serviceStage: 'En Route'
     })
 
     setBookedSubmitted(true)
   }
-
-  const [bookingData, setBookingData] = useState({
-    date: '',
-    time: '9:00 AM',
-    notes: ''
-  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blush-50 via-softpink/20 to-mint-50 py-10 px-4 sm:px-6">
@@ -167,6 +169,7 @@ export default function Customer() {
           /* ================= LOGGED IN CUSTOMER DASHBOARD ================= */
           <div className="space-y-8">
             
+            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-3xl border border-blush-100 shadow-sm gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Hello, {profile.fullName}!</h1>
@@ -180,7 +183,44 @@ export default function Customer() {
               </button>
             </div>
 
-            {/* QUICK BOOKING & OTHER SECTIONS */}
+            {/* LIVE SERVICE STATUS STAGE WIDGET */}
+            <div className="bg-white rounded-3xl border border-blush-200 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="text-blush-500" size={20} />
+                <h2 className="text-lg font-semibold text-gray-800">Live Service Status</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Stage 1: En Route */}
+                <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'En Route' ? 'bg-mint-50 border-mint-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                  <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
+                    <Truck size={16} className="text-mint-600" />
+                    <span>1. En Route</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Cleaner is on the way to your property.</p>
+                </div>
+
+                {/* Stage 2: Service in Progress */}
+                <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Service in Progress' ? 'bg-blush-50 border-blush-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                  <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
+                    <Clock size={16} className="text-blush-600 animate-spin" />
+                    <span>2. Service in Progress</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Your space is actively being cleaned.</p>
+                </div>
+
+                {/* Stage 3: Completed */}
+                <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Completed' ? 'bg-green-50 border-green-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                  <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
+                    <CheckCircle2 size={16} className="text-green-600" />
+                    <span>3. Completed</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Service complete! Final balance processed.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* REQUEST NEW CLEANING */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-blush-500" size={20} />
@@ -190,9 +230,9 @@ export default function Customer() {
               {bookedSubmitted ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Sent to Admin!</h3>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Received!</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Requested for {bookingData.date} at {bookingData.time}.
+                    Scheduled for {bookingData.date} at {bookingData.time}.
                   </p>
                   <button onClick={() => setBookedSubmitted(false)} className="btn-primary text-sm py-2 px-4">
                     Submit Another Request
@@ -294,6 +334,32 @@ export default function Customer() {
                   </button>
                 </div>
               </form>
+            </div>
+
+            {/* PAYMENT INFORMATION SECTION */}
+            <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard className="text-blush-500" size={20} />
+                <h2 className="text-lg font-semibold text-gray-800">Payment Method on File</h2>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Card details are privately vaulted. A 50% hold is authorized before cleaning, and the remaining balance is charged upon completion.
+              </p>
+
+              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg border border-gray-200">
+                    <Lock size={18} className="text-blush-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Visa ending in •••• 4242</p>
+                    <p className="text-xs text-gray-500">Expires 12/28 · Secure Vault</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
+                  <ShieldCheck size={14} /> Active
+                </span>
+              </div>
             </div>
 
           </div>
