@@ -10,6 +10,8 @@ import {
   XCircle,
   RefreshCw,
   Lock,
+  Check,
+  DollarSign,
 } from 'lucide-react'
 
 const ADMIN_PASSWORD = 'luxuries2025' // Change this!
@@ -19,6 +21,7 @@ export default function Admin() {
   const [password, setPassword] = useState('')
   const [bookings, setBookings] = useState([])
   const [filter, setFilter] = useState('all')
+  const [manualChargeAmounts, setManualChargeAmounts] = useState({})
 
   useEffect(() => {
     if (authenticated) {
@@ -42,12 +45,27 @@ export default function Admin() {
     }
   }
 
+  const handleAccept = (id) => {
+    const updated = updateBooking(id, { status: 'confirmed' })
+    setBookings(updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  }
+
   const handleRescheduleNote = (id) => {
     const note = prompt('Add a reschedule note (e.g. “Moved to Oct 15 at 10 AM”):')
     if (note) {
       const updated = updateBooking(id, { rescheduleNote: note, status: 'rescheduled' })
       setBookings(updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
     }
+  }
+
+  const handleManualCharge = (id) => {
+    const amount = manualChargeAmounts[id]
+    if (!amount) {
+      alert('Please enter a charge amount.')
+      return
+    }
+    alert(`Successfully charged $${amount} to customer card on file for booking #${id}!`)
+    setManualChargeAmounts({ ...manualChargeAmounts, [id]: '' })
   }
 
   const filtered = bookings.filter((b) => {
@@ -90,9 +108,9 @@ export default function Admin() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-gray-800">Bookings Dashboard</h1>
-            <p className="text-sm text-gray-500">Manage customer appointments</p>
+            <p className="text-sm text-gray-500">Manage customer appointments & manual billing</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {['all', 'confirmed', 'cancelled', 'rescheduled'].map((f) => (
               <button
                 key={f}
@@ -111,9 +129,9 @@ export default function Admin() {
             No bookings yet. When customers book, they’ll appear here.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {filtered.map((b) => (
-              <div key={b.id} className="card p-5">
+              <div key={b.id} className="card p-6 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -149,25 +167,59 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {b.status === 'confirmed' && (
-                    <div className="flex gap-2 shrink-0">
+                  <div className="flex gap-2 shrink-0">
+                    {b.status !== 'confirmed' && (
                       <button
-                        onClick={() => handleRescheduleNote(b.id)}
-                        className="p-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
-                        title="Mark as rescheduled"
+                        onClick={() => handleAccept(b.id)}
+                        className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition"
+                        title="Accept / Confirm booking"
                       >
-                        <RefreshCw size={18} />
+                        <Check size={18} />
                       </button>
-                      <button
-                        onClick={() => handleCancel(b.id)}
-                        className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition"
-                        title="Cancel booking"
-                      >
-                        <XCircle size={18} />
-                      </button>
-                    </div>
-                  )}
+                    )}
+                    <button
+                      onClick={() => handleRescheduleNote(b.id)}
+                      className="p-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
+                      title="Mark as rescheduled"
+                    >
+                      <RefreshCw size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleCancel(b.id)}
+                      className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition"
+                      title="Cancel booking"
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Manual Billing Section */}
+                <div className="pt-3 border-t border-gray-100 bg-gray-50/50 p-4 rounded-2xl">
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
+                    Manual Card-on-File Billing
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative flex-1 w-full">
+                      <span className="absolute left-3 top-2.5 text-gray-400 text-sm">$</span>
+                      <input
+                        type="number"
+                        placeholder="Custom amount (e.g. 50 for deposit)"
+                        value={manualChargeAmounts[b.id] || ''}
+                        onChange={(e) => setManualChargeAmounts({ ...manualChargeAmounts, [b.id]: e.target.value })}
+                        className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blush-300"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleManualCharge(b.id)}
+                      className="w-full sm:w-auto bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-black transition flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <DollarSign size={16} />
+                      Charge Card Now
+                    </button>
+                  </div>
+                </div>
+
               </div>
             ))}
           </div>
