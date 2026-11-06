@@ -54,11 +54,11 @@ export default function Admin() {
   }
 
   const handleAccept = (id) => {
-    const updated = updateBooking(id, { status: 'confirmed', serviceStage: 'En Route' })
+    const updated = updateBooking(id, { status: 'confirmed', serviceStage: 'Pending / Scheduled' })
     setBookings(updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
   }
 
-  // Update real-time service stage (En Route, Service in Progress, Completed)
+  // Update real-time service stage with initial "Pending / Scheduled" stage added
   const handleStageChange = (id, newStage) => {
     const updated = updateBooking(id, { serviceStage: newStage })
     setBookings(updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
@@ -224,7 +224,7 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* SERVICE STATUS UPDATE DROPDOWN */}
+                  {/* SERVICE STATUS UPDATE DROPDOWN WITH INITIAL 'Pending / Scheduled' OPTION */}
                   <div className="pt-3 border-t border-gray-100 bg-blush-50/50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Truck size={16} className="text-blush-500" />
@@ -232,10 +232,11 @@ export default function Admin() {
                     </div>
 
                     <select
-                      value={b.serviceStage || 'En Route'}
+                      value={b.serviceStage || 'Pending / Scheduled'}
                       onChange={(e) => handleStageChange(b.id, e.target.value)}
                       className="w-full sm:w-auto p-2 rounded-xl border border-gray-300 text-xs font-medium bg-white focus:outline-none focus:border-blush-400"
                     >
+                      <option value="Pending / Scheduled">⏳ Pending / Scheduled (Not started)</option>
                       <option value="En Route">🚚 En Route (Cleaner on the way)</option>
                       <option value="Service in Progress">🧹 Service in Progress (Cleaning active)</option>
                       <option value="Completed">✨ Completed (Finished & left)</option>
