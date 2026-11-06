@@ -1,15 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History } from 'lucide-react'
 
 export default function Customer() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [authMode, setAuthMode] = useState('login') // 'login' or 'signup'
+  const [authMode, setAuthMode] = useState('login')
   
   // Auth Form State
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  // Profile Data State
+  // Test Profile State
   const [profile, setProfile] = useState({
     fullName: 'Jane Doe',
     phone: '(555) 019-2834',
@@ -17,13 +17,10 @@ export default function Customer() {
     homeDetails: '3 Beds, 2 Baths, 1,800 sq ft. Pet inside (small friendly dog). Keypad code: 4921.',
   })
 
-  // Past Cleanings History State
-  const [cleaningsHistory, setCleaningsHistory] = useState([
-    { id: 'CLN-003', date: 'October 18, 2026', service: 'Deep Home Clean', status: 'Completed', amount: '$200.00' },
-    { id: 'CLN-002', date: 'September 14, 2026', service: 'Standard Tidy-Up', status: 'Completed', amount: '$150.00' },
-  ])
+  // Past Cleanings History
+  const [cleaningsHistory, setCleaningsHistory] = useState([])
 
-  // Quick Booking State (Sunday - Thursday, 9 AM - 3 PM)
+  // Quick Booking Form State
   const [bookingData, setBookingData] = useState({
     date: '',
     time: '9:00 AM',
@@ -31,14 +28,28 @@ export default function Customer() {
   })
   const [bookedSubmitted, setBookedSubmitted] = useState(false)
 
-  // Live Cleaning Status (Simulated API status: 'arrived' | 'cleaning' | 'completed')
+  // Live Cleaning Status
   const [cleaningStatus, setCleaningStatus] = useState('cleaning')
+
+  // Load existing bookings from browser storage on startup
+  useEffect(() => {
+    const saved = localStorage.getItem('luxury_cleanings_requests')
+    if (saved) {
+      setCleaningsHistory(JSON.parse(saved))
+    } else {
+      const defaultData = [
+        { id: 'CLN-003', customerName: 'Jane Doe', address: '742 Evergreen Terrace', phone: '(555) 019-2834', date: '2026-10-18', time: '10:00 AM', service: 'Deep Home Clean', status: 'Completed', amount: '$200.00' },
+      ]
+      setCleaningsHistory(defaultData)
+      localStorage.setItem('luxury_cleanings_requests', JSON.stringify(defaultData))
+    }
+  }, [])
 
   // Only allow Sunday (0) to Thursday (4)
   const isAllowedDay = (dateString) => {
     if (!dateString) return false
     const day = new Date(dateString + 'T12:00:00').getDay()
-    return day >= 0 && day <= 4 // Sunday = 0, Thursday = 4
+    return day >= 0 && day <= 4
   }
 
   const handleAuthSubmit = (e) => {
@@ -58,15 +69,23 @@ export default function Customer() {
       return
     }
 
-    // Add new booking request to history logs automatically
-    const newRecord = {
+    const newRequest = {
       id: `CLN-00${cleaningsHistory.length + 1}`,
+      customerName: profile.fullName,
+      phone: profile.phone,
+      address: profile.address,
+      homeDetails: profile.homeDetails,
       date: bookingData.date,
-      service: `Requested Clean (${bookingData.time})`,
-      status: 'Upcoming / 50% Hold Authorized',
+      time: bookingData.time,
+      notes: bookingData.notes,
+      service: `Scheduled Clean (${bookingData.time})`,
+      status: 'Pending Admin Approval',
       amount: '$175.00'
     }
-    setCleaningsHistory([newRecord, ...cleaningsHistory])
+
+    const updated = [newRequest, ...cleaningsHistory]
+    setCleaningsHistory(updated)
+    localStorage.setItem('luxury_cleanings_requests', JSON.stringify(updated))
     setBookedSubmitted(true)
   }
 
@@ -83,8 +102,8 @@ export default function Customer() {
               </h1>
               <p className="text-sm text-gray-500 mt-1">
                 {authMode === 'login' 
-                  ? 'Sign in with your email to view your saved home details & quick book' 
-                  : 'Register using your email to save your home info and manage future cleans'}
+                  ? 'Sign in with your email to view saved details & book' 
+                  : 'Register using your email to save home info'}
               </p>
             </div>
 
@@ -167,7 +186,7 @@ export default function Customer() {
                     <MapPin size={16} className="text-mint-600" />
                     <span>1. Cleaner Arrived</span>
                   </div>
-                  <p className="text-xs text-gray-500">Cleaner checked in at your property.</p>
+                  <p className="text-xs text-gray-500">Cleaner checked in at property.</p>
                 </div>
 
                 <div className={`p-4 rounded-2xl border ${cleaningStatus === 'cleaning' ? 'bg-blush-50 border-blush-400' : 'bg-gray-50 border-gray-200'}`}>
@@ -175,7 +194,7 @@ export default function Customer() {
                     <Clock size={16} className="text-blush-600 animate-spin" />
                     <span>2. Cleaning Active</span>
                   </div>
-                  <p className="text-xs text-gray-500">Your space is currently being cleaned.</p>
+                  <p className="text-xs text-gray-500">Space is being cleaned.</p>
                 </div>
 
                 <div className={`p-4 rounded-2xl border ${cleaningStatus === 'completed' ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-200'}`}>
@@ -188,11 +207,11 @@ export default function Customer() {
               </div>
             </div>
 
-            {/* PAST CLEANINGS HISTORY SECTION */}
+            {/* PAST CLEANINGS & PENDING REQUESTS HISTORY */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <History className="text-blush-500" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Past Cleanings History</h2>
+                <h2 className="text-lg font-semibold text-gray-800">Cleaning Requests & History</h2>
               </div>
 
               <div className="space-y-3">
@@ -208,7 +227,13 @@ export default function Customer() {
                     </div>
                     <div className="text-left sm:text-right">
                       <p className="text-sm font-bold text-gray-800">{item.amount}</p>
-                      <span className="text-[11px] font-medium text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
+                      <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                        item.status === 'Accepted' || item.status === 'Completed'
+                          ? 'text-green-700 bg-green-50 border-green-200'
+                          : item.status === 'Declined'
+                          ? 'text-red-700 bg-red-50 border-red-200'
+                          : 'text-amber-700 bg-amber-50 border-amber-200'
+                      }`}>
                         {item.status}
                       </span>
                     </div>
@@ -217,20 +242,22 @@ export default function Customer() {
               </div>
             </div>
 
-            {/* QUICK BOOKING SECTION FOR RETURNING CUSTOMERS */}
+            {/* REQUEST NEW CLEANING */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-blush-500" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Quick Book Next Cleaning</h2>
+                <h2 className="text-lg font-semibold text-gray-800">Request a New Cleaning</h2>
               </div>
 
               {bookedSubmitted ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">Booking Confirmed!</h3>
-                  <p className="text-sm text-gray-600 mb-4">Scheduled for {bookingData.date} at {bookingData.time}.</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Sent to Admin!</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Requested for {bookingData.date} at {bookingData.time}. Open your Admin page (`/admin`) to Accept or Decline this request!
+                  </p>
                   <button onClick={() => setBookedSubmitted(false)} className="btn-primary text-sm py-2 px-4">
-                    Book Another
+                    Submit Another Request
                   </button>
                 </div>
               ) : (
@@ -271,8 +298,19 @@ export default function Customer() {
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Special Notes / Access Info</label>
+                    <textarea 
+                      rows={2}
+                      value={bookingData.notes}
+                      onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
+                      placeholder="Any specific requests for this visit?"
+                      className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blush-400"
+                    />
+                  </div>
+
                   <button type="submit" className="w-full btn-primary py-3 text-sm font-medium">
-                    Confirm Quick Booking (50% Deposit Hold)
+                    Submit Request to Admin
                   </button>
                 </form>
               )}
