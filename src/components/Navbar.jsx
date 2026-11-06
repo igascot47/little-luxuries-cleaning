@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Sparkles } from 'lucide-react'
+import { Menu, X, Sparkles, User } from 'lucide-react'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
 
+  // Added "Login / Sign-in" link pointing to your /customer page
   const links = [
     { to: '/', label: 'Home' },
     { to: '/#services', label: 'Services' },
     { to: '/book', label: 'Book Now' },
     { to: '/#about', label: 'About' },
     { to: '/#contact', label: 'Contact' },
+    { to: '/customer', label: 'Login / Sign-in' },
   ]
 
   const isActive = (path) => {
