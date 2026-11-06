@@ -5,7 +5,6 @@ import Home from './pages/Home'
 import Booking from './pages/Booking'
 import Admin from './pages/Admin'
 import Customer from './pages/Customer'
-import ReturningBooking from './pages/ReturningBooking'
 
 export default function App() {
   return (
@@ -16,7 +15,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/book" element={<Booking />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/customer" element={<ReturningBooking />} />
+          <Route path="/customer" element={<Customer />} />
         </Routes>
       </main>
       <Footer />
