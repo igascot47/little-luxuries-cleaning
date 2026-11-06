@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, Clock, Home, CheckCircle } from 'lucide-react'
+import { Calendar, Clock, Home, CheckCircle, MapPin, CheckCircle2 } from 'lucide-react'
 
 export default function Customer() {
   const [submitted, setSubmitted] = useState(false)
@@ -11,6 +11,9 @@ export default function Customer() {
     time: '',
     notes: ''
   })
+
+  // Live cleaning status for notifications
+  const [cleanerStatus, setCleanerStatus] = useState('cleaning') // 'arrived' | 'cleaning' | 'completed'
 
   // Only allow Sunday (0) to Thursday (4)
   const isAllowedDay = (dateString) => {
@@ -55,16 +58,52 @@ export default function Customer() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-10">
+      <div className="max-w-2xl mx-auto space-y-8">
+        
+        <div className="text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-            Returning Customer Booking
+            Returning Customer Portal
           </h1>
           <p className="text-gray-600">
-            Welcome back! Select a day and time that works for you.
+            Welcome back! Track your service status or schedule your next clean.
           </p>
         </div>
 
+        {/* LIVE CLEANING STATUS NOTIFICATIONS BOX */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="text-blush-500" size={20} />
+            <h2 className="text-base font-semibold text-gray-800">Live Service Status & Notifications</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className={`p-3 rounded-xl border text-left ${cleanerStatus === 'arrived' ? 'bg-mint-50 border-mint-400' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center gap-1.5 font-semibold text-xs mb-1 text-gray-800">
+                <MapPin size={14} className="text-mint-600" />
+                <span>1. Cleaner Arrived</span>
+              </div>
+              <p className="text-[11px] text-gray-500">Cleaner checked in.</p>
+            </div>
+
+            <div className={`p-3 rounded-xl border text-left ${cleanerStatus === 'cleaning' ? 'bg-blush-50 border-blush-400' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center gap-1.5 font-semibold text-xs mb-1 text-gray-800">
+                <Clock size={14} className="text-blush-600 animate-spin" />
+                <span>2. Cleaning Active</span>
+              </div>
+              <p className="text-[11px] text-gray-500">Space is being cleaned.</p>
+            </div>
+
+            <div className={`p-3 rounded-xl border text-left ${cleanerStatus === 'completed' ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center gap-1.5 font-semibold text-xs mb-1 text-gray-800">
+                <CheckCircle2 size={14} className="text-green-600" />
+                <span>3. Finished / Left</span>
+              </div>
+              <p className="text-[11px] text-gray-500">Service completed.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Original Booking Form */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -141,7 +180,7 @@ export default function Customer() {
                   required
                   value={formData.time}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blush-400 focus:border-blush-400 outline-none appearance-none"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blush-400 focus:border-blush-400 outline-none appearance-none bg-white"
                 >
                   <option value="">Select a time</option>
                   <option value="9:00 AM">9:00 AM</option>
@@ -182,6 +221,7 @@ export default function Customer() {
             </p>
           </form>
         </div>
+
       </div>
     </div>
   )
