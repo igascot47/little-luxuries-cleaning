@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History, Truck, Sparkles } from 'lucide-react'
+import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History, Truck } from 'lucide-react'
 import { saveBooking, loadBookings } from '../utils/schedule'
 
 export default function Customer() {
@@ -28,13 +28,13 @@ export default function Customer() {
     notes: ''
   })
 
-  // Periodically read status from storage
+  // Sync schedule bookings from utility
   useEffect(() => {
     const currentBookings = loadBookings()
     setCleaningsHistory(currentBookings)
   }, [bookedSubmitted])
 
-  // Get current active cleaning's live status stage
+  // Get active stage from latest booking
   const latestBooking = cleaningsHistory[0]
   const currentStage = latestBooking?.serviceStage || 'En Route'
 
@@ -112,7 +112,7 @@ export default function Customer() {
               </h1>
               <p className="text-sm text-gray-500 mt-1">
                 {authMode === 'login' 
-                  ? 'Sign in with your email to view saved details & book' 
+                  ? 'Sign in with your email to access your customer portal' 
                   : 'Register using your email to save home info'}
               </p>
             </div>
@@ -166,14 +166,14 @@ export default function Customer() {
             </div>
           </div>
         ) : (
-          /* ================= LOGGED IN CUSTOMER DASHBOARD ================= */
+          /* ================= LOGGED IN CUSTOMER PORTAL ================= */
           <div className="space-y-8">
             
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-3xl border border-blush-100 shadow-sm gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Hello, {profile.fullName}!</h1>
-                <p className="text-sm text-gray-500">Manage your profile, payment card, live service status, and quick bookings.</p>
+                <p className="text-sm text-gray-500">Welcome to your Customer Portal. Manage profile, track services, and request cleans.</p>
               </div>
               <button 
                 onClick={() => setIsLoggedIn(false)}
@@ -183,15 +183,14 @@ export default function Customer() {
               </button>
             </div>
 
-            {/* LIVE SERVICE STATUS STAGE WIDGET */}
+            {/* LIVE SERVICE STATUS NOTIFICATIONS */}
             <div className="bg-white rounded-3xl border border-blush-200 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Clock className="text-blush-500" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Live Service Status</h2>
+                <h2 className="text-lg font-semibold text-gray-800">Live Service Status & Notifications</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Stage 1: En Route */}
                 <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'En Route' ? 'bg-mint-50 border-mint-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
                   <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
                     <Truck size={16} className="text-mint-600" />
@@ -200,7 +199,6 @@ export default function Customer() {
                   <p className="text-xs text-gray-500">Cleaner is on the way to your property.</p>
                 </div>
 
-                {/* Stage 2: Service in Progress */}
                 <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Service in Progress' ? 'bg-blush-50 border-blush-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
                   <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
                     <Clock size={16} className="text-blush-600 animate-spin" />
@@ -209,7 +207,6 @@ export default function Customer() {
                   <p className="text-xs text-gray-500">Your space is actively being cleaned.</p>
                 </div>
 
-                {/* Stage 3: Completed */}
                 <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Completed' ? 'bg-green-50 border-green-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
                   <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
                     <CheckCircle2 size={16} className="text-green-600" />
@@ -220,7 +217,45 @@ export default function Customer() {
               </div>
             </div>
 
-            {/* REQUEST NEW CLEANING */}
+            {/* PAST CLEANINGS & REQUEST HISTORY */}
+            <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <History className="text-blush-500" size={20} />
+                <h2 className="text-lg font-semibold text-gray-800">Cleaning Requests & Service History</h2>
+              </div>
+
+              {cleaningsHistory.length === 0 ? (
+                <p className="text-xs text-gray-500 py-2">No cleaning requests found yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {cleaningsHistory.map((item, idx) => (
+                    <div key={item.id || idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-blush-600">{item.id || `CLN-00${idx + 1}`}</span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs font-semibold text-gray-700">{item.date}</span>
+                        </div>
+                        <p className="text-sm font-medium text-gray-800 mt-0.5">{item.service || 'House Cleaning'}</p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border capitalize ${
+                          item.status === 'confirmed' || item.status === 'Completed'
+                            ? 'text-green-700 bg-green-50 border-green-200'
+                            : item.status === 'cancelled'
+                            ? 'text-red-700 bg-red-50 border-red-200'
+                            : 'text-amber-700 bg-amber-50 border-amber-200'
+                        }`}>
+                          {item.status || 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* REQUEST NEW CLEANING FORM */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-blush-500" size={20} />
@@ -230,9 +265,9 @@ export default function Customer() {
               {bookedSubmitted ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Received!</h3>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Sent to Admin!</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Scheduled for {bookingData.date} at {bookingData.time}.
+                    Requested for {bookingData.date} at {bookingData.time}.
                   </p>
                   <button onClick={() => setBookedSubmitted(false)} className="btn-primary text-sm py-2 px-4">
                     Submit Another Request
@@ -273,6 +308,17 @@ export default function Customer() {
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Special Notes / Access Info</label>
+                    <textarea 
+                      rows={2}
+                      value={bookingData.notes}
+                      onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
+                      placeholder="Any specific instructions for this visit?"
+                      className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blush-400"
+                    />
+                  </div>
+
                   <button type="submit" className="w-full btn-primary py-3 text-sm font-medium">
                     Submit Request to Admin
                   </button>
@@ -280,7 +326,7 @@ export default function Customer() {
               )}
             </div>
 
-            {/* SAVED PROFILE FORM */}
+            {/* SAVED PROFILE & HOME DETAILS FORM */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Home className="text-blush-500" size={20} />
@@ -336,7 +382,7 @@ export default function Customer() {
               </form>
             </div>
 
-            {/* PAYMENT INFORMATION SECTION */}
+            {/* PAYMENT METHOD SECTION */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="text-blush-500" size={20} />
