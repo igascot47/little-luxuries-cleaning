@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History, Truck } from 'lucide-react'
+import { Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck, Calendar, History, Truck, ChevronDown, ChevronUp } from 'lucide-react'
 import { saveBooking, loadBookings } from '../utils/schedule'
 
 export default function Customer() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true) // Keeps portal unlocked for preview/testing
+  const [isLoggedIn, setIsLoggedIn] = useState(true)
   const [authMode, setAuthMode] = useState('login')
   
   // Auth Form State
@@ -21,6 +21,7 @@ export default function Customer() {
   // Past Cleanings & Schedule History
   const [cleaningsHistory, setCleaningsHistory] = useState([])
   const [successMessage, setSuccessMessage] = useState('')
+  const [expandedId, setExpandedId] = useState(null) // Accordion dropdown state
 
   const [bookingData, setBookingData] = useState({
     date: '',
@@ -31,12 +32,14 @@ export default function Customer() {
   // Sync schedule bookings from utility
   useEffect(() => {
     const currentBookings = loadBookings()
-    setCleaningsHistory(currentBookings)
+    // Sort so the latest date is always at the top
+    const sorted = [...currentBookings].sort((a, b) => new Date(b.date + 'T' + (b.time || '00:00')) - new Date(a.date + 'T' + (a.time || '00:00')))
+    setCleaningsHistory(sorted)
   }, [successMessage])
 
-  // Get active stage from latest booking
+  // Get active stage from the latest/upcoming appointment only
   const latestBooking = cleaningsHistory[0]
-  const currentStage = latestBooking?.serviceStage || 'En Route'
+  const currentStage = latestBooking?.serviceStage || 'Pending / Scheduled'
 
   // Only allow Sunday (0) to Thursday (4)
   const isAllowedDay = (dateString) => {
@@ -72,11 +75,15 @@ export default function Customer() {
       notes: bookingData.notes,
       service: 'Returning Customer Clean',
       status: 'confirmed',
-      serviceStage: 'En Route'
+      serviceStage: 'Pending / Scheduled'
     })
 
     setSuccessMessage(`Successfully requested a clean for ${bookingData.date} at ${bookingData.time}!`)
     setBookingData({ date: '', time: '9:00 AM', notes: '' })
+  }
+
+  const toggleAccordion = (id) => {
+    setExpandedId(expandedId === id ? null : id)
   }
 
   return (
@@ -156,41 +163,52 @@ export default function Customer() {
               </div>
             )}
 
-            {/* 1. LIVE SERVICE STATUS WIDGET */}
+            {/* 1. UPCOMING APPOINTMENT LIVE TRACKER */}
             <div className="bg-white rounded-3xl border border-blush-200 p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="text-blush-500" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Live Service Status & Notifications</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Clock className="text-blush-500" size={20} />
+                  <h2 className="text-lg font-semibold text-gray-800">Upcoming Cleaning Tracker</h2>
+                </div>
+                {latestBooking && (
+                  <span className="text-xs font-semibold text-blush-600 bg-blush-50 px-3 py-1 rounded-full border border-blush-100">
+                    Next Clean: {latestBooking.date}
+                  </span>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'En Route' ? 'bg-mint-50 border-mint-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
-                  <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
-                    <Truck size={16} className="text-mint-600" />
-                    <span>1. En Route</span>
+              {!latestBooking ? (
+                <p className="text-xs text-gray-500 py-2">No upcoming cleanings scheduled yet. Use the form below to request one!</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'En Route' ? 'bg-mint-50 border-mint-400 shadow-xs ring-2 ring-mint-300' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                    <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
+                      <Truck size={16} className="text-mint-600" />
+                      <span>1. En Route</span>
+                    </div>
+                    <p className="text-xs text-gray-500">Cleaner is on the way to your property.</p>
                   </div>
-                  <p className="text-xs text-gray-500">Cleaner is on the way to your property.</p>
-                </div>
 
-                <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Service in Progress' ? 'bg-blush-50 border-blush-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
-                  <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
-                    <Clock size={16} className="text-blush-600 animate-spin" />
-                    <span>2. Service in Progress</span>
+                  <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Service in Progress' ? 'bg-blush-50 border-blush-400 shadow-xs ring-2 ring-blush-300' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                    <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
+                      <Clock size={16} className="text-blush-600 animate-spin" />
+                      <span>2. Service in Progress</span>
+                    </div>
+                    <p className="text-xs text-gray-500">Your space is actively being cleaned.</p>
                   </div>
-                  <p className="text-xs text-gray-500">Your space is actively being cleaned.</p>
-                </div>
 
-                <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Completed' ? 'bg-green-50 border-green-400 shadow-xs' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
-                  <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
-                    <CheckCircle2 size={16} className="text-green-600" />
-                    <span>3. Completed</span>
+                  <div className={`p-4 rounded-2xl border transition-all ${currentStage === 'Completed' ? 'bg-green-50 border-green-400 shadow-xs ring-2 ring-green-300' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                    <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-gray-800">
+                      <CheckCircle2 size={16} className="text-green-600" />
+                      <span>3. Completed</span>
+                    </div>
+                    <p className="text-xs text-gray-500">Service complete! Final balance processed.</p>
                   </div>
-                  <p className="text-xs text-gray-500">Service complete! Final balance processed.</p>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* 2. PAST CLEANINGS & REQUEST HISTORY */}
+            {/* 2. PAST CLEANINGS & DROPDOWN ACCORDION LIST */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <History className="text-blush-500" size={20} />
@@ -201,34 +219,56 @@ export default function Customer() {
                 <p className="text-xs text-gray-500 py-2">No cleaning requests found yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {cleaningsHistory.map((item, idx) => (
-                    <div key={item.id || idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-blush-600">{item.id || `CLN-00${idx + 1}`}</span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs font-semibold text-gray-700">{item.date} at {item.time}</span>
-                        </div>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">{item.service || 'House Cleaning'}</p>
+                  {cleaningsHistory.map((item, idx) => {
+                    const itemId = item.id || `CLN-00${cleaningsHistory.length - idx}`
+                    const isExpanded = expandedId === itemId
+                    return (
+                      <div key={itemId} className="rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden transition-all">
+                        {/* Dropdown Header */}
+                        <button
+                          onClick={() => toggleAccordion(itemId)}
+                          className="w-full p-4 flex items-center justify-between hover:bg-gray-100 transition-colors text-left"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-blush-600">{itemId}</span>
+                              <span className="text-xs text-gray-400">•</span>
+                              <span className="text-xs font-semibold text-gray-700">{item.date} at {item.time}</span>
+                            </div>
+                            <p className="text-sm font-medium text-gray-800 mt-0.5">{item.service || 'House Cleaning'}</p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border capitalize ${
+                              item.serviceStage === 'Completed' || item.status === 'Completed'
+                                ? 'text-green-700 bg-green-50 border-green-200'
+                                : item.status === 'cancelled'
+                                ? 'text-red-700 bg-red-50 border-red-200'
+                                : 'text-amber-700 bg-amber-50 border-amber-200'
+                            }`}>
+                              {item.serviceStage || item.status || 'Scheduled'}
+                            </span>
+                            {isExpanded ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                          </div>
+                        </button>
+
+                        {/* Dropdown Content details */}
+                        {isExpanded && (
+                          <div className="p-4 bg-white border-t border-gray-200 text-xs text-gray-600 space-y-2">
+                            <p><strong>Service Address:</strong> {item.address || profile.address}</p>
+                            <p><strong>Contact Phone:</strong> {item.phone || profile.phone}</p>
+                            <p><strong>Service Status:</strong> {item.serviceStage || 'Scheduled'}</p>
+                            {item.notes && <p className="italic">"Notes: {item.notes}"</p>}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-left sm:text-right">
-                        <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border capitalize ${
-                          item.status === 'confirmed' || item.status === 'Completed'
-                            ? 'text-green-700 bg-green-50 border-green-200'
-                            : item.status === 'cancelled'
-                            ? 'text-red-700 bg-red-50 border-red-200'
-                            : 'text-amber-700 bg-amber-50 border-amber-200'
-                        }`}>
-                          {item.serviceStage || item.status || 'Pending'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
 
-            {/* 3. REQUEST NEW CLEANING FORM (Stays visible!) */}
+            {/* 3. REQUEST NEW CLEANING FORM */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-blush-500" size={20} />
