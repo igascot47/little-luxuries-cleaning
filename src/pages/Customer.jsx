@@ -3,12 +3,12 @@ import { User, Home, CreditCard, Clock, CheckCircle2, MapPin, Lock, ShieldCheck,
 import { saveBooking, loadBookings } from '../utils/schedule'
 
 export default function Customer() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(true) // Keeps portal unlocked for preview/testing
   const [authMode, setAuthMode] = useState('login')
   
   // Auth Form State
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('jane.doe@example.com')
+  const [password, setPassword] = useState('password123')
 
   // Profile State
   const [profile, setProfile] = useState({
@@ -20,7 +20,7 @@ export default function Customer() {
 
   // Past Cleanings & Schedule History
   const [cleaningsHistory, setCleaningsHistory] = useState([])
-  const [bookedSubmitted, setBookedSubmitted] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   const [bookingData, setBookingData] = useState({
     date: '',
@@ -32,7 +32,7 @@ export default function Customer() {
   useEffect(() => {
     const currentBookings = loadBookings()
     setCleaningsHistory(currentBookings)
-  }, [bookedSubmitted])
+  }, [successMessage])
 
   // Get active stage from latest booking
   const latestBooking = cleaningsHistory[0]
@@ -47,32 +47,11 @@ export default function Customer() {
 
   const handleAuthSubmit = (e) => {
     e.preventDefault()
-    
-    const existingAccounts = JSON.parse(localStorage.getItem('luxury_cleaning_accounts') || '[]')
-    const accountExists = existingAccounts.some(acc => acc.email === email)
-    
-    if (!accountExists) {
-      const newAccount = {
-        email,
-        fullName: profile.fullName,
-        phone: profile.phone,
-        address: profile.address,
-        homeDetails: profile.homeDetails,
-        createdAt: new Date().toLocaleDateString()
-      }
-      localStorage.setItem('luxury_cleaning_accounts', JSON.stringify([...existingAccounts, newAccount]))
-    }
-
     setIsLoggedIn(true)
   }
 
   const handleProfileSave = (e) => {
     e.preventDefault()
-    const existingAccounts = JSON.parse(localStorage.getItem('luxury_cleaning_accounts') || '[]')
-    const updatedAccounts = existingAccounts.map(acc => 
-      acc.email === email ? { ...acc, fullName: profile.fullName, phone: profile.phone, address: profile.address, homeDetails: profile.homeDetails } : acc
-    )
-    localStorage.setItem('luxury_cleaning_accounts', JSON.stringify(updatedAccounts))
     alert('Personal information and home details saved!')
   }
 
@@ -96,7 +75,8 @@ export default function Customer() {
       serviceStage: 'En Route'
     })
 
-    setBookedSubmitted(true)
+    setSuccessMessage(`Successfully requested a clean for ${bookingData.date} at ${bookingData.time}!`)
+    setBookingData({ date: '', time: '9:00 AM', notes: '' })
   }
 
   return (
@@ -146,24 +126,6 @@ export default function Customer() {
                 {authMode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             </form>
-
-            <div className="mt-6 text-center text-xs text-gray-500">
-              {authMode === 'login' ? (
-                <p>
-                  Don't have an account?{' '}
-                  <button onClick={() => setAuthMode('signup')} className="text-blush-500 font-semibold underline">
-                    Sign up with email
-                  </button>
-                </p>
-              ) : (
-                <p>
-                  Already have an account?{' '}
-                  <button onClick={() => setAuthMode('login')} className="text-blush-500 font-semibold underline">
-                    Log in
-                  </button>
-                </p>
-              )}
-            </div>
           </div>
         ) : (
           /* ================= LOGGED IN CUSTOMER PORTAL ================= */
@@ -183,7 +145,18 @@ export default function Customer() {
               </button>
             </div>
 
-            {/* LIVE SERVICE STATUS NOTIFICATIONS */}
+            {/* SUCCESS BANNER NOTICE IF BOOKED */}
+            {successMessage && (
+              <div className="bg-mint-50 border border-mint-300 p-4 rounded-2xl flex items-center justify-between text-mint-800 text-sm shadow-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={18} className="text-mint-600" />
+                  <span>{successMessage}</span>
+                </div>
+                <button onClick={() => setSuccessMessage('')} className="text-xs font-bold underline">Dismiss</button>
+              </div>
+            )}
+
+            {/* 1. LIVE SERVICE STATUS WIDGET */}
             <div className="bg-white rounded-3xl border border-blush-200 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Clock className="text-blush-500" size={20} />
@@ -217,7 +190,7 @@ export default function Customer() {
               </div>
             </div>
 
-            {/* PAST CLEANINGS & REQUEST HISTORY */}
+            {/* 2. PAST CLEANINGS & REQUEST HISTORY */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <History className="text-blush-500" size={20} />
@@ -234,7 +207,7 @@ export default function Customer() {
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-blush-600">{item.id || `CLN-00${idx + 1}`}</span>
                           <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs font-semibold text-gray-700">{item.date}</span>
+                          <span className="text-xs font-semibold text-gray-700">{item.date} at {item.time}</span>
                         </div>
                         <p className="text-sm font-medium text-gray-800 mt-0.5">{item.service || 'House Cleaning'}</p>
                       </div>
@@ -246,7 +219,7 @@ export default function Customer() {
                             ? 'text-red-700 bg-red-50 border-red-200'
                             : 'text-amber-700 bg-amber-50 border-amber-200'
                         }`}>
-                          {item.status || 'Pending'}
+                          {item.serviceStage || item.status || 'Pending'}
                         </span>
                       </div>
                     </div>
@@ -255,78 +228,65 @@ export default function Customer() {
               )}
             </div>
 
-            {/* REQUEST NEW CLEANING FORM */}
+            {/* 3. REQUEST NEW CLEANING FORM (Stays visible!) */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-blush-500" size={20} />
                 <h2 className="text-lg font-semibold text-gray-800">Request a New Cleaning</h2>
               </div>
 
-              {bookedSubmitted ? (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">Request Sent to Admin!</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Requested for {bookingData.date} at {bookingData.time}.
-                  </p>
-                  <button onClick={() => setBookedSubmitted(false)} className="btn-primary text-sm py-2 px-4">
-                    Submit Another Request
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleBookingSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-                        Select Date * <span className="font-normal lowercase">(Sun – Thu only)</span>
-                      </label>
-                      <input 
-                        type="date"
-                        required
-                        value={bookingData.date}
-                        onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
-                        className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blush-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-                        Select Time * <span className="font-normal lowercase">(9 AM – 3 PM)</span>
-                      </label>
-                      <select 
-                        value={bookingData.time}
-                        onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
-                        className="w-full p-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:border-blush-400"
-                      >
-                        <option value="9:00 AM">9:00 AM</option>
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="12:00 PM">12:00 PM</option>
-                        <option value="1:00 PM">1:00 PM</option>
-                        <option value="2:00 PM">2:00 PM</option>
-                      </select>
-                    </div>
-                  </div>
-
+              <form onSubmit={handleBookingSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Special Notes / Access Info</label>
-                    <textarea 
-                      rows={2}
-                      value={bookingData.notes}
-                      onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
-                      placeholder="Any specific instructions for this visit?"
+                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                      Select Date * <span className="font-normal lowercase">(Sun – Thu only)</span>
+                    </label>
+                    <input 
+                      type="date"
+                      required
+                      value={bookingData.date}
+                      onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
                       className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blush-400"
                     />
                   </div>
 
-                  <button type="submit" className="w-full btn-primary py-3 text-sm font-medium">
-                    Submit Request to Admin
-                  </button>
-                </form>
-              )}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                      Select Time * <span className="font-normal lowercase">(9 AM – 3 PM)</span>
+                    </label>
+                    <select 
+                      value={bookingData.time}
+                      onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
+                      className="w-full p-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:border-blush-400"
+                    >
+                      <option value="9:00 AM">9:00 AM</option>
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="11:00 AM">11:00 AM</option>
+                      <option value="12:00 PM">12:00 PM</option>
+                      <option value="1:00 PM">1:00 PM</option>
+                      <option value="2:00 PM">2:00 PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Special Notes / Access Info</label>
+                  <textarea 
+                    rows={2}
+                    value={bookingData.notes}
+                    onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
+                    placeholder="Any specific instructions for this visit?"
+                    className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blush-400"
+                  />
+                </div>
+
+                <button type="submit" className="w-full btn-primary py-3 text-sm font-medium">
+                  Submit Request to Admin
+                </button>
+              </form>
             </div>
 
-            {/* SAVED PROFILE & HOME DETAILS FORM */}
+            {/* 4. SAVED PROFILE & HOME DETAILS FORM */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Home className="text-blush-500" size={20} />
@@ -382,7 +342,7 @@ export default function Customer() {
               </form>
             </div>
 
-            {/* PAYMENT METHOD SECTION */}
+            {/* 5. PAYMENT METHOD SECTION */}
             <div className="bg-white rounded-3xl border border-blush-100 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="text-blush-500" size={20} />
