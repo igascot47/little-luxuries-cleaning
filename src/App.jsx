@@ -4,7 +4,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Booking from './pages/Booking'
 import Admin from './pages/Admin'
-
+import Customer from './pages/Customer'
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -14,6 +14,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/book" element={<Booking />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/customer" element={<Customer />} />
         </Routes>
       </main>
       <Footer />
