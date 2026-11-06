@@ -5,8 +5,6 @@ const Booking = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // For now this just shows success message.
-    // Later we can connect it to Formspree or email.
     setSubmitted(true);
   };
 
@@ -92,8 +90,8 @@ const Booking = () => {
             />
           </div>
 
-          {/* Rooms + Floors */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Rooms + Bathrooms + Floors */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Number of Rooms *
@@ -101,6 +99,18 @@ const Booking = () => {
               <input
                 type="number"
                 name="rooms"
+                min="1"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Number of Bathrooms *
+              </label>
+              <input
+                type="number"
+                name="bathrooms"
                 min="1"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none"
@@ -120,21 +130,22 @@ const Booking = () => {
             </div>
           </div>
 
-          {/* Dogs */}
+          {/* Pets */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Are there dogs in the home? *
+              Are there pets in the home? *
             </label>
             <select
-              name="dogs"
+              name="pets"
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none"
             >
               <option value="">Select...</option>
               <option value="No">No</option>
-              <option value="Yes - 1 dog">Yes - 1 dog</option>
-              <option value="Yes - 2 dogs">Yes - 2 dogs</option>
-              <option value="Yes - 3 or more">Yes - 3 or more dogs</option>
+              <option value="Yes - Dogs">Yes - Dogs</option>
+              <option value="Yes - Cats">Yes - Cats</option>
+              <option value="Yes - Dogs and Cats">Yes - Dogs and Cats</option>
+              <option value="Yes - Other pets">Yes - Other pets</option>
             </select>
           </div>
 
