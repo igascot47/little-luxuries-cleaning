@@ -3,18 +3,24 @@ import { Sparkles, Calendar, Star } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section 
-      className="relative overflow-hidden bg-gradient-to-br from-blush-50 via-softpink/40 to-mint-50 py-16 md:py-24"
-      style={{
-        backgroundImage: `url(${import.meta.env.BASE_URL}logo.png)`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right center',
-        backgroundSize: '380px',
-      }}
-    >
-      {/* Soft overlay so text stays readable */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blush-50/90 via-blush-50/70 to-transparent"></div>
+    <section className="relative overflow-hidden bg-gradient-to-br from-blush-50 via-softpink/40 to-mint-50 py-16 md:py-24">
+      
+      {/* Translucent logo as background */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}logo.png)`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right center',
+          backgroundSize: '420px',
+          opacity: 0.18,          // ← This makes it translucent
+        }}
+      />
 
+      {/* Soft gradient overlay so text stays clear */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blush-50/95 via-blush-50/80 to-transparent pointer-events-none" />
+
+      {/* Sparkles */}
       <div className="sparkle top-20 left-[15%]" style={{ animationDelay: '0s' }} />
       <div className="sparkle top-40 right-[20%]" style={{ animationDelay: '0.6s' }} />
       <div className="sparkle bottom-32 left-[25%]" style={{ animationDelay: '1.2s' }} />
