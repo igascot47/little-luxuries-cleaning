@@ -207,7 +207,7 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* SECTION 1: CALENDAR VIEW (Shows Active Bookings Only) */}
+            {/* SECTION 1: CALENDAR VIEW */}
             <div className="card p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -239,7 +239,6 @@ export default function Admin() {
                   const formattedDay = String(dayNum).padStart(2, '0')
                   const dateString = `${year}-${formattedMonth}-${formattedDay}`
 
-                  // Only pull active (non-cancelled) bookings for the calendar grid
                   const dayBookings = activeBookings.filter(b => b.date === dateString)
 
                   return (
@@ -304,4 +303,105 @@ export default function Admin() {
                   {activeBookings.map((b) => (
                     <div key={b.id} className="card p-6 space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                        <div className
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-gray-800">{b.service}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+                            <span className="flex items-center gap-1 font-bold text-blush-600">
+                              <CalendarIcon size={14} />
+                              {b.date} at {b.time}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p 
+                              onClick={() => {
+                                const foundAcc = accounts.find(a => a.fullName.toLowerCase() === b.name.toLowerCase()) || { fullName: b.name, email: b.email, phone: b.phone, address: b.address, homeDetails: 'Standard access' }
+                                setSelectedCustomer(foundAcc)
+                              }}
+                              className="flex items-center gap-1 font-bold text-blush-600 underline cursor-pointer w-fit"
+                            >
+                              <User size={14} /> {b.name} (View Profile)
+                            </p>
+                            <p className="flex items-center gap-1"><Phone size={14} className="text-gray-400" /> {b.phone}</p>
+                            <p className="flex items-center gap-1"><MapPin size={14} className="text-gray-400" /> {b.address}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 shrink-0">
+                          {b.status !== 'confirmed' && (
+                            <button
+                              onClick={() => handleAccept(b.id)}
+                              className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition flex items-center gap-1 text-xs font-semibold"
+                            >
+                              <Check size={16} /> Accept
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleCancel(b.id)}
+                            className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition"
+                            title="Cancel booking"
+                          >
+                            <XCircle size={18} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* LIVE SERVICE STAGE SELECTOR */}
+                      <div className="pt-3 border-t border-gray-100 bg-blush-50/50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <Truck size={16} className="text-blush-500" />
+                          <span className="text-xs font-semibold text-gray-700 uppercase">Live Service Status:</span>
+                        </div>
+
+                        <select
+                          value={b.serviceStage || 'Pending / Scheduled'}
+                          onChange={(e) => handleStageChange(b.id, e.target.value)}
+                          className="w-full sm:w-auto p-2 rounded-xl border border-gray-300 text-xs font-medium bg-white focus:outline-none focus:border-blush-400"
+                        >
+                          <option value="Pending / Scheduled">⏳ Pending / Scheduled (Not started)</option>
+                          <option value="En Route">🚚 En Route (Cleaner on the way)</option>
+                          <option value="Service in Progress">🧹 Service in Progress (Cleaning active)</option>
+                          <option value="Completed">✨ Completed (Finished & left)</option>
+                        </select>
+                      </div>
+
+                      {/* MANUAL BILLING SECTION */}
+                      <div className="bg-gray-50/50 p-4 rounded-2xl space-y-2 border border-gray-100">
+                        <label className="block text-xs font-semibold text-gray-600 uppercase">
+                          Manual Card-on-File Billing
+                        </label>
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                          <div className="relative flex-1 w-full">
+                            <span className="absolute left-3 top-2.5 text-gray-400 text-sm">$</span>
+                            <input
+                              type="number"
+                              placeholder="Custom amount"
+                              value={manualChargeAmounts[b.id] || ''}
+                              onChange={(e) => setManualChargeAmounts({ ...manualChargeAmounts, [b.id]: e.target.value })}
+                              className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none"
+                            />
+                          </div>
+                          <button
+                            onClick={() => handleManualCharge(b.id)}
+                            className="w-full sm:w-auto bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-black transition flex items-center justify-center gap-1.5 shrink-0"
+                          >
+                            <DollarSign size={16} />
+                            Charge Card Now
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </section>
+  )
+}
