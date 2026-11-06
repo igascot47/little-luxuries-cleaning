@@ -7,18 +7,15 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
-              <div>
-                <span className="font-script text-xl text-blush-500">Little Luxuries</span>
-                <p className="text-[9px] tracking-widest text-gray-500 uppercase -mt-0.5">Cleaning Co.</p>
-              </div>
+            {/* Logo image removed - only text remains */}
+            <div className="mb-4">
+              <span className="font-script text-xl text-blush-500">Little Luxuries</span>
+              <p className="text-[9px] tracking-widest text-gray-500 uppercase -mt-0.5">Cleaning Co.</p>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
               Professional, friendly & thorough cleaning that leaves every space sparkling with a little luxury.
             </p>
           </div>
-
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
@@ -28,7 +25,6 @@ export default function Footer() {
               <li><Link to="/admin" className="text-gray-600 hover:text-blush-500 transition">Admin Portal</Link></li>
             </ul>
           </div>
-
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Get in Touch</h4>
             <ul className="space-y-3 text-sm text-gray-600">
@@ -53,7 +49,6 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-
         <div className="mt-10 pt-6 border-t border-blush-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} Little Luxuries Cleaning Co. All rights reserved.</p>
           <p className="flex items-center gap-1">
