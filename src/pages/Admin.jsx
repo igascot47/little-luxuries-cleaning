@@ -8,11 +8,11 @@ import {
   Phone,
   Mail,
   XCircle,
-  RefreshCw,
   Lock,
   Check,
   DollarSign,
   Users,
+  Truck,
 } from 'lucide-react'
 
 const ADMIN_PASSWORD = 'luxuries2025'
@@ -25,13 +25,15 @@ export default function Admin() {
   const [filter, setFilter] = useState('all')
   const [manualChargeAmounts, setManualChargeAmounts] = useState({})
 
+  const fetchLatestData = () => {
+    setBookings(loadBookings().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+    const savedAccounts = JSON.parse(localStorage.getItem('luxury_cleaning_accounts') || '[]')
+    setAccounts(savedAccounts)
+  }
+
   useEffect(() => {
     if (authenticated) {
-      setBookings(loadBookings().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
-      
-      // Load customer accounts from shared storage
-      const savedAccounts = JSON.parse(localStorage.getItem('luxury_cleaning_accounts') || '[]')
-      setAccounts(savedAccounts)
+      fetchLatestData()
     }
   }, [authenticated])
 
@@ -52,7 +54,13 @@ export default function Admin() {
   }
 
   const handleAccept = (id) => {
-    const updated = updateBooking(id, { status: 'confirmed' })
+    const updated = updateBooking(id, { status: 'confirmed', serviceStage: 'En Route' })
+    setBookings(updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  }
+
+  // Update real-time service stage (En Route, Service in Progress, Completed)
+  const handleStageChange = (id, newStage) => {
+    const updated = updateBooking(id, { serviceStage: newStage })
     setBookings(updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
   }
 
@@ -120,7 +128,7 @@ export default function Admin() {
           </div>
 
           {accounts.length === 0 ? (
-            <p className="text-sm text-gray-500 py-2">No customer accounts created yet. Log into the customer portal and sign up with an email!</p>
+            <p className="text-sm text-gray-500 py-2">No customer accounts created yet.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {accounts.map((acc, index) => (
@@ -144,7 +152,7 @@ export default function Admin() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-lg font-semibold text-gray-800">Bookings & Appointment Requests</h2>
             <div className="flex gap-2 flex-wrap">
-              {['all', 'confirmed', 'cancelled', 'rescheduled'].map((f) => (
+              {['all', 'confirmed', 'cancelled'].map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
@@ -200,10 +208,10 @@ export default function Admin() {
                       {b.status !== 'confirmed' && (
                         <button
                           onClick={() => handleAccept(b.id)}
-                          className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition"
+                          className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition flex items-center gap-1 text-xs font-semibold"
                           title="Accept booking"
                         >
-                          <Check size={18} />
+                          <Check size={16} /> Accept
                         </button>
                       )}
                       <button
@@ -216,9 +224,27 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* Manual Billing Section */}
-                  <div className="pt-3 border-t border-gray-100 bg-gray-50/50 p-4 rounded-2xl">
-                    <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
+                  {/* SERVICE STATUS UPDATE DROPDOWN */}
+                  <div className="pt-3 border-t border-gray-100 bg-blush-50/50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Truck size={16} className="text-blush-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase">Live Service Status:</span>
+                    </div>
+
+                    <select
+                      value={b.serviceStage || 'En Route'}
+                      onChange={(e) => handleStageChange(b.id, e.target.value)}
+                      className="w-full sm:w-auto p-2 rounded-xl border border-gray-300 text-xs font-medium bg-white focus:outline-none focus:border-blush-400"
+                    >
+                      <option value="En Route">🚚 En Route (Cleaner on the way)</option>
+                      <option value="Service in Progress">🧹 Service in Progress (Cleaning active)</option>
+                      <option value="Completed">✨ Completed (Finished & left)</option>
+                    </select>
+                  </div>
+
+                  {/* MANUAL BILLING SECTION */}
+                  <div className="bg-gray-50/50 p-4 rounded-2xl space-y-2 border border-gray-100">
+                    <label className="block text-xs font-semibold text-gray-600 uppercase">
                       Manual Card-on-File Billing
                     </label>
                     <div className="flex flex-col sm:flex-row items-center gap-3">
