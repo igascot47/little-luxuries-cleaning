@@ -5,20 +5,16 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blush-50 via-softpink/40 to-mint-50 py-16 md:py-24">
       
-      {/* Translucent logo as background */}
+      {/* Background logo centered */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `url(${import.meta.env.BASE_URL}logo.png)`,
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right center',
-          backgroundSize: '420px',
-          opacity: 0.18,          // ← This makes it translucent
+          backgroundPosition: 'center center', // Centers the logo
+          backgroundSize: '500px', // Adjust this size if you want it larger or smaller
         }}
       />
-
-      {/* Soft gradient overlay so text stays clear */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blush-50/95 via-blush-50/80 to-transparent pointer-events-none" />
 
       {/* Sparkles */}
       <div className="sparkle top-20 left-[15%]" style={{ animationDelay: '0s' }} />
